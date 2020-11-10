@@ -1,34 +1,28 @@
 package com.example.sensorkeystore
 
-import android.R.attr.end
-import android.R.attr.start
-import android.content.Context
+import android.app.KeyguardManager
+import java.util.*
 import android.os.Build
 import android.os.Bundle
-import android.security.KeyPairGeneratorSpec
-import android.security.keystore.KeyGenParameterSpec
-import android.security.keystore.KeyProperties
-import android.view.inputmethod.InputMethodManager
-import android.widget.Button
-import android.widget.EditText
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import java.math.BigInteger
+import java.security.KeyPair
+import android.widget.Button
+import android.content.Context
+import android.widget.EditText
+import javax.crypto.KeyGenerator
+import java.security.KeyPairGenerator
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
-import java.math.BigInteger
-import java.security.KeyPairGenerator
-import java.security.KeyStore
-import java.security.spec.AlgorithmParameterSpec
-import javax.crypto.Cipher
-import javax.crypto.KeyGenerator
-import javax.crypto.SecretKey
-import javax.crypto.spec.IvParameterSpec
+import android.security.KeyPairGeneratorSpec
 import javax.security.auth.x500.X500Principal
+import android.security.keystore.KeyProperties
+import androidx.appcompat.app.AppCompatActivity
+import android.view.inputmethod.InputMethodManager
+import android.security.keystore.KeyGenParameterSpec
 
 
 class MainActivity : AppCompatActivity() {
-
-    private val TRANSFORMATION =  "AES/CBC/PKCS7Padding"
 
     private lateinit var pair: Pair<ByteArray, ByteArray>
 
@@ -41,7 +35,10 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         initViewAndListeners()
 
+        val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
 
+        if (!keyguardManager.isKeyguardSecure)
+            Toast.makeText(this, "Secure", Toast.LENGTH_SHORT).show()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             val keyGenerator = KeyGenerator.getInstance(
@@ -52,7 +49,6 @@ class MainActivity : AppCompatActivity() {
                 "Key",
                 KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
             )
-                .setUserAuthenticationRequired(true)
                 .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
                 .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
                 .build()
@@ -62,9 +58,26 @@ class MainActivity : AppCompatActivity() {
             keyGenerator.generateKey()
         } else {
 
-            val keyPairGenerator: KeyPairGenerator = KeyPairGenerator.getInstance("RSA", "AndroidKeyStore")
+            val startDate: Date = Calendar.getInstance().getTime()
+            val endCalendar: Calendar = Calendar.getInstance()
+            endCalendar.add(Calendar.YEAR, 1)
+            val endDate: Date = endCalendar.getTime()
+            val keyPairGeneratorSpec = KeyPairGeneratorSpec.Builder(this)
+                .setAlias("Key")
+                .setKeySize(4096)
+                .setSubject(X500Principal("CN=Key"))
+                .setSerialNumber(BigInteger.ONE)
+                .setStartDate(startDate)
+                .setEndDate(endDate)
+                .build()
 
+            val keyPairGenerator = KeyPairGenerator.getInstance(
+                "RSA",
+                "AndroidKeyStore"
+            )
+            keyPairGenerator.initialize(keyPairGeneratorSpec)
 
+            keyPairGenerator.generateKeyPair()
 
         }
 
@@ -82,7 +95,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         btnGetLastSavedStringInKeystore.setOnClickListener {
-            callBiometric()
+            Toast.makeText(this, Cryptography.decryptData(pair.first, pair.second), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -99,7 +112,7 @@ class MainActivity : AppCompatActivity() {
         if (this::pair.isInitialized) {
             val executor = ContextCompat.getMainExecutor(this)
             val callback = BiometricAuthenticationCallback(
-                this, decryptData(
+                this, Cryptography.decryptData(
                     pair.first,
                     pair.second
                 )
@@ -118,45 +131,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun storeString() {
         if (inputString.text.isNotEmpty()) {
-            pair = encryptData(inputString.text.toString())
+            pair = Cryptography.encryptData(inputString.text.toString())
             inputString.setText("")
             Toast.makeText(this, R.string.key_generate_success, Toast.LENGTH_SHORT).show()
         } else {
             Toast.makeText(this, "You haven't store string in keystore", Toast.LENGTH_SHORT).show()
         }
-    }
-
-    private fun encryptData(data: String) : Pair<ByteArray, ByteArray> {
-
-        val cipher = Cipher.getInstance(TRANSFORMATION)
-        var temp = data
-
-        while (temp.toCharArray().size % 16 != 0)
-            temp += "\u0020"
-
-        cipher.init(Cipher.ENCRYPT_MODE, getKey())
-
-        val ivBytes = cipher.iv
-        val encryptedBytes = cipher.doFinal(temp.toByteArray(Charsets.UTF_8))
-
-        return Pair(ivBytes, encryptedBytes)
-    }
-
-    private fun decryptData(ivBytes: ByteArray, data: ByteArray): String {
-
-        val cipher = Cipher.getInstance(TRANSFORMATION)
-        val spec = IvParameterSpec(ivBytes)
-
-        cipher.init(Cipher.DECRYPT_MODE, getKey(), spec)
-
-        return cipher.doFinal(data).toString(Charsets.UTF_8).trim()
-    }
-
-    private fun getKey() : SecretKey {
-        val keyStore = KeyStore.getInstance("AndroidKeyStore")
-        keyStore.load(null)
-
-        val secretKeyEntry = keyStore.getEntry("Key", null) as KeyStore.SecretKeyEntry
-        return secretKeyEntry.secretKey
     }
 }
