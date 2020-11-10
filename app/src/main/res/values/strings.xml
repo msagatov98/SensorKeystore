@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">SensorKeystore</string>
+
+    <string name="empty_input_error">You can\'t send empty string</string>
+
+    <string name="key_generate_error">Key generate error</string>
+    <string name="key_generate_success">Key generated successfully</string>
+
+    <string name="input_string">Enter string</string>
+    <string name="btn_get_keystore">Gel last saved string</string>
+    <string name="btn_save_keystore">Save string in keystore</string>
+</resources>
