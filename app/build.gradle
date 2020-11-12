@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    id 'kotlin-android-extensions'
 }
 
 android {
@@ -34,7 +35,7 @@ android {
 
 dependencies {
 
-
+    implementation 'com.github.GoodieBag:Pinview:v1.4'
     implementation 'androidx.biometric:biometric:1.0.1'
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
