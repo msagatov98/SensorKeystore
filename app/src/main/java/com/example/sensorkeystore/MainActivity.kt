@@ -14,6 +14,7 @@ import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import android.view.inputmethod.InputMethodManager
+import android.widget.ImageView
 import androidx.appcompat.app.AlertDialog
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.dialog_pin.view.*
@@ -24,7 +25,9 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var cryptography: Cryptography
 
+    private lateinit var ivPin: ImageView
     private lateinit var inputString: EditText
+    private lateinit var ivFingerprint: ImageView
     private lateinit var btnSaveStringInKeyStore: Button
     private lateinit var btnGetLastSavedStringInKeystore: Button
 
@@ -47,31 +50,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initViewAndListeners() {
+        ivPin = findViewById(R.id.iv_pin)
         inputString = findViewById(R.id.input_string)
+        ivFingerprint = findViewById(R.id.iv_fingerprint)
         btnSaveStringInKeyStore = findViewById(R.id.btn_save_string_keystore)
         btnGetLastSavedStringInKeystore = findViewById(R.id.btn_get_last_saved_keystore)
 
-        iv_pin.setOnClickListener {
-            val view = layoutInflater.inflate(R.layout.dialog_pin, null)
-
-            val alertDialog = AlertDialog.Builder(this).setView(view).create()
-
-            view.pin_view.setPinViewEventListener { pinview, _ ->
-
-                iv_pin.visibility = View.GONE
-                iv_fingerprint.visibility = View.GONE
-
-                if (pinview.value == getPin()) {
-                    alertDialog.dismiss()
-                    showToast(cryptography.decryptData(pair.first, pair.second))
-                } else {
-                    showToast("PIN is incorrect")
-                }
-            }
-
-            alertDialog.show()
+        ivPin.setOnClickListener {
+           showPinInputDialog()
         }
-        iv_fingerprint.setOnClickListener {
+
+        ivFingerprint.setOnClickListener {
             callBiometric()
         }
 
@@ -83,13 +72,11 @@ class MainActivity : AppCompatActivity() {
         btnGetLastSavedStringInKeystore.setOnClickListener {
 
             if (this::pair.isInitialized) {
-
                 if (isFingerprintAvailable) {
                     iv_fingerprint.visibility = View.VISIBLE
                     iv_pin.visibility = View.VISIBLE
                 } else {
                     iv_pin.visibility = View.VISIBLE
-
                 }
             } else {
                 showToast("You haven't store string in keystore")
@@ -150,5 +137,26 @@ class MainActivity : AppCompatActivity() {
                 .build()
 
             biometricPrompt.authenticate(promptInfo)
+    }
+
+    private fun showPinInputDialog() {
+        val view = layoutInflater.inflate(R.layout.dialog_pin, null)
+
+        val alertDialog = AlertDialog.Builder(this).setView(view).create()
+
+        view.pin_view.setPinViewEventListener { pinview, _ ->
+
+            iv_pin.visibility = View.GONE
+            iv_fingerprint.visibility = View.GONE
+
+            if (pinview.value == getPin()) {
+                alertDialog.dismiss()
+                showToast(cryptography.decryptData(pair.first, pair.second))
+            } else {
+                showToast("PIN is incorrect")
+            }
+        }
+
+        alertDialog.show()
     }
 }
