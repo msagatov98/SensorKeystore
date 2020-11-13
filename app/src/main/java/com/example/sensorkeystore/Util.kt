@@ -18,6 +18,7 @@ fun Context.savePin(pin: String) {
     val editor = sp.edit()
 
     editor.putString("PIN", pin)
+    editor.apply()
 }
 
 fun Context.getPin() : String? {

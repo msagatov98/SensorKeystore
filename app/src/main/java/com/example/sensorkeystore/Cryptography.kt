@@ -2,8 +2,8 @@ package com.example.sensorkeystore
 
 abstract class Cryptography {
 
-    val ALIAS = "Key"
-    val PROVIDER = "AndroidKeyStore"
+    protected val ALIAS = "Key"
+    protected val PROVIDER = "AndroidKeyStore"
 
     abstract fun encryptData(data: String) : Pair<ByteArray, ByteArray>
 

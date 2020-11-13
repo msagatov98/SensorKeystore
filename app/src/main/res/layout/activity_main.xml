@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_height="match_parent"
     android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
-    android:gravity="center"
     tools:context=".MainActivity">
 
     <EditText
@@ -13,7 +13,8 @@
         android:id="@+id/input_string"
         android:hint="@string/input_string"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@id/btn_save_string_keystore"/>
 
     <Button
         android:layout_margin="16dp"
@@ -21,7 +22,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/btn_save_keystore"
-        android:id="@+id/btn_save_string_keystore"/>
+        android:id="@+id/btn_save_string_keystore"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
 
     <Button
         android:layout_margin="16dp"
@@ -29,6 +32,33 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/btn_get_keystore"
-        android:id="@+id/btn_get_last_saved_keystore"/>
+        android:id="@+id/btn_get_last_saved_keystore"
+        app:layout_constraintTop_toBottomOf="@id/btn_save_string_keystore"/>
 
-</LinearLayout>
+    <LinearLayout
+        android:layout_gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <ImageView
+            android:id="@+id/iv_fingerprint"
+            android:visibility="gone"
+            android:layout_margin="25dp"
+            android:src="@drawable/ic_fingerprint"
+            android:layout_width="50dp"
+            android:layout_height="50dp" />
+        <ImageView
+            android:id="@+id/iv_pin"
+            android:visibility="gone"
+            android:layout_margin="25dp"
+            android:src="@drawable/ic_pin"
+            android:layout_width="50dp"
+            android:layout_height="50dp" />
+
+
+    </LinearLayout>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

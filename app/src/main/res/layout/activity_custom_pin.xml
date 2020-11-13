@@ -24,7 +24,7 @@
         app:pinHeight="50dp"
         app:pinLength="4"
         app:cursorVisible="false"
-        app:forceKeyboard="true"
+        app:forceKeyboard="false"
         app:inputType="number"
         app:password="true"/>
 

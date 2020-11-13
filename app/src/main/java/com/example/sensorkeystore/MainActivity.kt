@@ -1,22 +1,23 @@
 package com.example.sensorkeystore
 
-import android.app.KeyguardManager
 import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import android.util.Log
-import android.view.inputmethod.InputMethodManager
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.DialogFragment
+import android.view.inputmethod.InputMethodManager
+import androidx.appcompat.app.AlertDialog
+import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.dialog_pin.*
+import kotlinx.android.synthetic.main.dialog_pin.view.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -30,17 +31,21 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var mBiometricManager: BiometricManager
 
+    private var isFingerprintAvailable = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         initViewAndListeners()
 
-        mBiometricManager = BiometricManager.from(this)
-
         if (getPin() == null)
             startActivity(Intent(this, CustomPinActivity::class.java))
 
+        mBiometricManager = BiometricManager.from(this)
 
+        if (mBiometricManager.canAuthenticate() == BiometricManager.BIOMETRIC_SUCCESS) {
+            isFingerprintAvailable = true
+        }
 
         cryptography = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             CryptographyAES()
@@ -54,17 +59,51 @@ class MainActivity : AppCompatActivity() {
         btnSaveStringInKeyStore = findViewById(R.id.btn_save_string_keystore)
         btnGetLastSavedStringInKeystore = findViewById(R.id.btn_get_last_saved_keystore)
 
+        iv_pin.setOnClickListener {
+            val view = layoutInflater.inflate(R.layout.dialog_pin, null)
+
+            val alertDialog = AlertDialog.Builder(this).setView(view).create()
+
+            view.pin_view.setPinViewEventListener { pinview, _ ->
+
+                iv_pin.visibility = View.GONE
+                iv_fingerprint.visibility = View.GONE
+
+                if (pinview.value == getPin()) {
+                    alertDialog.dismiss()
+                    showToast(cryptography.decryptData(pair.first, pair.second))
+                } else {
+                    showToast("PIN is incorrect")
+                }
+            }
+
+            alertDialog.show()
+        }
+        iv_fingerprint.setOnClickListener {
+            callBiometric()
+        }
+
         btnSaveStringInKeyStore.setOnClickListener {
             closeKeyboard()
             storeString()
         }
 
         btnGetLastSavedStringInKeystore.setOnClickListener {
-            //callBiometric()
 
+            if (this::pair.isInitialized) {
 
+                if (isFingerprintAvailable) {
+                    iv_fingerprint.visibility = View.VISIBLE
+                    iv_pin.visibility = View.VISIBLE
+                } else {
+                    iv_pin.visibility = View.VISIBLE
+
+                }
+            } else
+                showToast("You haven't store string in keystore")
         }
     }
+
 
     private fun closeKeyboard() {
         val view = this.currentFocus
@@ -92,17 +131,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun callBiometric() {
-        if (this::pair.isInitialized) {
+            iv_fingerprint.visibility = View.GONE
+            iv_pin.visibility = View.GONE
+
             val executor = ContextCompat.getMainExecutor(this)
             val callback = BiometricAuthenticationCallback(this, cryptography.decryptData(pair.first, pair.second))
             val biometricPrompt = BiometricPrompt(this, executor, callback)
 
             val promptInfo = BiometricPrompt.PromptInfo.Builder()
                 .setTitle("Biometric login")
+                .setNegativeButtonText("Nagative button test")
                 .build()
 
             biometricPrompt.authenticate(promptInfo)
-        } else
-            showToast("You haven't store string in keystore")
     }
 }
