@@ -109,7 +109,7 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
             }
         } else {
-            showToast("You haven't store string in keystore")
+            showToast(R.string.empty_input_error)
         }
     }
 
