@@ -16,7 +16,6 @@ import androidx.core.content.ContextCompat
 import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AlertDialog
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.dialog_pin.*
 import kotlinx.android.synthetic.main.dialog_pin.view.*
 
 class MainActivity : AppCompatActivity() {
@@ -37,15 +36,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         initViewAndListeners()
-
-        if (getPin() == null)
-            startActivity(Intent(this, CustomPinActivity::class.java))
-
-        mBiometricManager = BiometricManager.from(this)
-
-        if (mBiometricManager.canAuthenticate() == BiometricManager.BIOMETRIC_SUCCESS) {
-            isFingerprintAvailable = true
-        }
+        createPinIfNotExist()
+        checkFingerprintIsAvailable()
 
         cryptography = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             CryptographyAES()
@@ -99,11 +91,25 @@ class MainActivity : AppCompatActivity() {
                     iv_pin.visibility = View.VISIBLE
 
                 }
-            } else
+            } else {
                 showToast("You haven't store string in keystore")
+            }
         }
     }
 
+    private fun createPinIfNotExist() {
+        if (getPin() == null)
+            startActivity(Intent(this, CustomPinActivity::class.java))
+    }
+
+    private fun checkFingerprintIsAvailable() {
+        mBiometricManager = BiometricManager.from(this)
+
+        if (mBiometricManager.canAuthenticate() == BiometricManager.BIOMETRIC_SUCCESS) {
+            isFingerprintAvailable = true
+        }
+
+    }
 
     private fun closeKeyboard() {
         val view = this.currentFocus
