@@ -9,13 +9,13 @@ import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
-import androidx.biometric.BiometricManager
-import androidx.biometric.BiometricPrompt
-import androidx.core.content.ContextCompat
-import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
 import androidx.appcompat.app.AlertDialog
+import androidx.biometric.BiometricPrompt
+import androidx.biometric.BiometricManager
+import androidx.core.content.ContextCompat
+import androidx.appcompat.app.AppCompatActivity
+import android.view.inputmethod.InputMethodManager
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.dialog_pin.view.*
 
@@ -70,17 +70,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         btnGetLastSavedStringInKeystore.setOnClickListener {
-
-            if (this::pair.isInitialized) {
-                if (isFingerprintAvailable) {
-                    iv_fingerprint.visibility = View.VISIBLE
-                    iv_pin.visibility = View.VISIBLE
-                } else {
-                    iv_pin.visibility = View.VISIBLE
-                }
-            } else {
-                showToast("You haven't store string in keystore")
-            }
+            showAuthenticateMethods()
         }
     }
 
@@ -158,5 +148,19 @@ class MainActivity : AppCompatActivity() {
         }
 
         alertDialog.show()
+    }
+
+    private fun showAuthenticateMethods() {
+        if (this::pair.isInitialized) {
+            if (isFingerprintAvailable) {
+                iv_fingerprint.visibility = View.VISIBLE
+                iv_pin.visibility = View.VISIBLE
+            } else {
+                iv_pin.visibility = View.VISIBLE
+            }
+        } else {
+            showToast("You haven't store string in keystore")
+        }
+
     }
 }

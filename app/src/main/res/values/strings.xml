@@ -9,4 +9,5 @@
     <string name="input_string">Enter string</string>
     <string name="btn_get_keystore">Gel last saved string</string>
     <string name="btn_save_keystore">Save string in keystore</string>
+    <string name="you_must_set_pin_to_decrypt_string">You must set PIN to decrypt string</string>
 </resources>
